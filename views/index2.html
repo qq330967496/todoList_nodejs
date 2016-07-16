@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>todoList - 首页</title>
+<script type="text/javascript" src="/public/js/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="/public/js/jquery.form.js"></script>
+<link rel="stylesheet" href="/public/css/style.css" />
+
+<script>
+	$(function() {
+		$.ajax({
+			url : "/getData",
+			type : "GET",
+			dataType : "json",
+			success : function(data) {
+				console.log(data);
+				setTodoList(data.data);
+			},
+			error:function(data){
+				alert("error:"+data.responseText);
+			}
+		});
+		/* $('#form').ajaxForm(function(data){
+			if($("#new-todo").val()==""){
+				return false;
+			}
+			
+			$("#new-todo").val("");
+			$("#new-todo").focus();
+			setTodoList(data.data);
+		}).submit(function(){
+			return false;
+		}); */
+		
+		
+		$('#form').submit(function() {
+			if($("#new-todo").val()==""){
+				return false;
+			}
+			$.ajax({
+				url:"/addData",
+				data:$('#form').serialize(),
+				type:"POST",
+				beforeSend:function(){  
+					
+				},
+				success:function(data){
+					$("#new-todo").val("");
+					$("#new-todo").focus();
+					setTodoList(data.data);
+				},
+				error: function(e){
+					alert("error:"+e.responseText);
+				}
+			});
+			return false;
+		});
+		
+	});
+	
+	function setTodoList(data) {
+		$("#todo-list").html("");
+		var leftItemCount = data.length;
+		var clearCount = 0;
+		
+		if(leftItemCount>0){
+			$("#main").show();
+			$("footer").show();
+			$("footer>.todo-count").html("<b>"+leftItemCount+"</b> item left");
+			
+			for(var i=0; i < leftItemCount;i++){
+				var li = $("<li/>").appendTo($("#todo-list"));
+					var view = $("<div class='view' value='"+data[i].id+"'/>").appendTo(li);
+						var checkbox = $("<input class='toggle' type='checkbox'/>").appendTo(view);
+						var label = $("<label>"+data[i].val+"</label>").appendTo(view);
+						var a = $("<a class='destroy'></a>").appendTo(view);
+					var edit = $("<input class='edit' id='"+data[i].id+"' type='text' value='"+data[i].val+"'>").appendTo(li);
+			}
+			//全选
+			$("#toggle-all").click(function(){
+				var isChecked = $(this).is(":checked");
+				$(".toggle").prop("checked",isChecked);
+				$(".toggle").each(function(){
+					var isChecked = $(this).is(":checked");
+					if(isChecked){
+						$(this).parents("li").addClass("done");
+					}else{
+						$(this).parents("li").removeClass("done");
+					}
+				});
+				
+				deelClearCount();
+			})
+			
+			//view显示删除按钮，隐藏删除按钮，双击打开编辑框
+			$(".view").on("mouseover",function(){
+				$(this).find(".destroy").show();
+			}).on("mouseout",function(){
+				$(this).find(".destroy").hide();
+			}).on("dblclick",function(){
+				$(this).attr("value");
+				$(this).hide();
+				$(this).next(".edit").show();
+				$(this).next(".edit").select();
+			});
+			
+			//选择删除checkbox
+			$(".toggle").on("click",function(event){
+				var isChecked = $(this).is(":checked");
+				if(isChecked){
+					$(this).parents("li").addClass("done");
+				}else{
+					$(this).parents("li").removeClass("done");
+				}
+				
+				//是否全选
+				var $checked = $(".toggle").not(":checked");
+				if($checked.get(0)==undefined){
+					$("#toggle-all").prop("checked",true);
+				}else{
+					$("#toggle-all").prop("checked",false);
+				}
+				
+				deelClearCount();
+				
+			}).on("dblclick",function(event){
+				// 阻止冒泡
+				event.stopPropagation();
+			});
+			
+			//删除按钮点击
+			$(".destroy").on("click",function(){
+				$.ajax({
+					url : "/removeData",
+					type : "GET",
+					dataType : "json",
+					data:{"id":$(this).parent().attr("value")},
+					success : function(data) {
+						console.log(data);
+						setTodoList(data.data);
+					},
+					error:function(e){
+						alert("error:"+e.responseText);
+					}
+				});
+			});
+			
+			//编辑框失去焦点
+			$(".edit").on("blur",function(){
+				var id = $(this).attr("id");
+				var val = $(this).val();
+				$.ajax({
+					url : "/editData",
+					type : "POST",
+					dataType : "json",
+					data:{"id":id,"val":val},
+					success : function(data) {
+						console.log(data);
+						setTodoList(data.data);
+					},
+					error:function(e){
+						alert("error:"+e.responseText);
+					}
+				});
+			}).on("keyup",function(e){
+		        if(e.keyCode === 13){
+	        	 	var id = $(this).attr("id");
+					var val = $(this).val();
+					$.ajax({
+						url : "/editData",
+						type : "POST",
+						dataType : "json",
+						data:{"id":id,"val":val},
+						success : function(data) {
+							console.log(data);
+							setTodoList(data.data);
+						},
+						error:function(e){
+							alert("error:"+e.responseText);
+						}
+					});
+		        }
+		    });;
+			
+			//处理被清理数
+			function deelClearCount(){
+				clearCount = $(".toggle:checked").size();
+				var left = leftItemCount - clearCount;
+				if(clearCount>0){
+					$("#clear-completed").remove();
+					$("footer>.todo-count").before("<a id='clear-completed'>Clear "+clearCount+" completed item</a>");
+				
+					$("#clear-completed").on("click",function(){
+						var delIds = "";
+						$(".toggle:checked").each(function(){
+							delIds+= $(this).parent().attr("value")+",";
+						});
+						if(delIds.length>0){
+							$.ajax({
+								url : "/removeData",
+								type : "GET",
+								dataType : "json",
+								data:{"id":delIds},
+								success : function(data) {
+									console.log(data);
+									setTodoList(data.data);
+									$("#clear-completed").remove();
+									$("#toggle-all").prop("checked",false);
+								},
+								error:function(e){
+									alert("error:"+e.responseText);
+								}
+							});
+						}
+					});
+				}else{
+					$("#clear-completed").remove();
+				}
+				
+				$("footer>.todo-count").html("<b>"+left+"</b> item left");
+			}
+		}else{
+			$("footer").hide();
+			$("#main").hide();
+		}
+	}
+	/* function ajaxSubmit(){
+		$.ajaxSubmit({
+			url : "/addData",
+			type : "POST",
+			dataType: "html",
+			data: $("#form").serialize,
+			success : function(data) {
+				console.log("提交成功");
+			},
+			error:function(data){
+				alert("error:"+data.responseText);
+			}
+		});
+		return false;
+	} */
+	
+	
+	
+</script>
+
+</head>
+<body>
+	<div id="todoapp">
+		<header>
+			<h1>Todos</h1>
+			<form id="form" method="post" >
+				<input id="new-todo" type="text" name="item" placeholder="What needs to be done?" />
+			</form>
+		</header>
+		<div id="main">
+			<input id="toggle-all" type="checkbox"> <label
+				for="toggle-all">Mark all as complete</label>
+			<ul id="todo-list">
+			</ul>
+		</div>
+		<footer>
+			<div class="todo-count">
+			</div>
+		</footer>
+	</div>
+</body>
+</html>

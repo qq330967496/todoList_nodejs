@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>todoList - 首页</title>
+<script type="text/javascript" src="/public/js/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="/public/js/jquery.form.js"></script>
+<script type="text/javascript" src="/public/js/angular.min.js"></script>
+
+<link rel="stylesheet" href="/public/css/style.css" />
+
+</head>
+<body>
+	<div id="todoapp" ng-app="todoapp" ng-controller="formCtrl">
+		<header>
+			<h1>Todos</h1>
+			<form id="form" method="post">
+				<input id="new-todo" type="text" ng-keyup="add($event)"
+					placeholder="What needs to be done?" />
+			</form>
+		</header>
+		<div id="main">
+			<input id="toggle-all" type="checkbox" ng-click="markAll($event)">
+			<label for="toggle-all" >Mark all as complete</label>
+			<ul id="todo-list">
+				<li ng-repeat="item in data">
+					<div class="view" ng-dblclick="edit($event,$index)">
+						<input class="toggle" type="checkbox" ng-click="mark($event,$index)" ng-dblclick="stopPropagation($event)">
+						<label>{{item.val}}</label>
+						<a class="destroy" ng-click="del($event,$index)"></a>
+					</div>
+					<input class="edit" type="text" value="{{item.val}}" ng-keyup="update($event,$index)" ng-blur="update($event,$index)">
+				</li>
+			</ul>
+		</div>
+		<footer>
+			<a id="clear-completed" style="display:none;" ng-click="delMarks($event)">Clear {{clearItemCount}} completed items</a>
+			<div class="todo-count"><b>{{leftItemCount}}</b> items left</div>
+		</footer>
+	</div>
+	<div id="instructions">
+	    Double-click to edit a todo.
+	</div>
+	<div id="credits">
+	    Created by Sever Ho
+	    <br>Refer to : <a href="http://backbonejs.org/examples/todos/index.html" target="_blank">backbone - TodoMVC</a>.
+	</div>
+
+	<script>
+		//angularjs
+		var app = angular.module('todoapp', []);
+		app.controller('formCtrl', function($scope, $http) {
+			$scope.leftItemCount = 0;
+			$scope.clearItemCount = 0;
+			
+			//获取数据
+			$http.get("/getData").success(function(response) {
+				$scope.data = response.data;
+				if ($scope.data.length > 0) {
+					$scope.leftItemCount = $scope.data.length;
+					$("#main").show();
+					$("footer").show();
+				}
+			});
+			
+			//阻止事件冒泡 
+			$scope.stopPropagation = function(e){
+				e.stopPropagation();
+			}
+
+			//添加
+			$scope.add = function(e) {
+				var keycode = window.event ? e.keyCode : e.which;
+				if (keycode == 13) {
+					console.log("添加");
+					var newTodo = {
+						id : "1",
+						val : $("#new-todo").val()
+					};
+					$scope.data.push(newTodo);
+
+					$("#new-todo").val("");
+					$("#main").show();
+					$("footer").show();
+					
+					$scope.leftItemCount++;
+				}
+			}
+
+			//删除
+			$scope.del = function(e,index) {
+				console.log("删除:"+index);
+				$scope.data.splice(index, 1);
+				
+				var $this = $(e.currentTarget);
+				var isDel = $this.parents("li").hasClass("done");
+				if(!isDel){
+					$scope.leftItemCount--;
+				}
+				
+				if($scope.data.length==0){
+					$("#main").hide();
+					$("footer").hide();
+					$("#toggle-all").prop("checked",false);
+				}
+			}
+			
+			//编辑
+			$scope.edit = function(e){
+				console.log("编辑");
+				//当前对象 e.currentTarget
+				//当前对象以及子对象 e.target
+				var $this = $(e.currentTarget);
+				$this.hide();
+				$this.next(".edit").show();
+				$this.next(".edit").select();
+			}
+			
+			//更新
+			$scope.update = function(e, index) {
+				var keycode = window.event ? e.keyCode : e.which;
+				if (keycode==null || keycode == 13) {
+					console.log("更新");
+					$(".view").show();
+					$(".edit").hide();
+					
+					$this = $(e.currentTarget);
+					$scope.data[index].val=$this.val();
+				}
+				
+			}
+			
+			//标记删除
+			$scope.mark = function(e,index){
+				var $this = $(e.currentTarget);
+				markCommon($this,index);
+			}
+			
+			//标记所有
+			$scope.markAll = function(e){
+				var $this = $(e.currentTarget);
+				var isChecked = $this.is(":checked");
+				
+				$(".toggle").prop("checked",isChecked);
+				$(".toggle").each(function(index){
+					markCommon($(this),index);
+				});
+			}
+			
+			//标记通用函数
+			function markCommon($this,index){
+				var isChecked = $this.is(":checked");
+				if(isChecked){
+					$this.parents("li").addClass("done");
+					$scope.leftItemCount--;
+				}else{
+					$this.parents("li").removeClass("done");
+					$scope.leftItemCount++;
+				}
+				
+				if($scope.leftItemCount<0){
+					$scope.leftItemCount = 0;
+				}
+				
+				$scope.clearItemCount = $scope.data.length - $scope.leftItemCount;
+				if($scope.clearItemCount>0){
+					$("#clear-completed").show();
+				}else{
+					$("#clear-completed").hide();
+				}
+				$("#toggle-all").prop("checked",$scope.leftItemCount == 0);
+			}
+			
+			//批量删除
+			$scope.delMarks = function(e){
+				//待删除index
+				var delIndexs = [];
+				$(".toggle").each(function(index){
+					var isChecked = $(this).is(":checked");
+					if(isChecked){
+						$(this).parents("li").addClass("done");
+						delIndexs.push(index);
+					}else{
+						$(this).parents("li").removeClass("done");
+						
+						var arrIndex = delIndexs.indexOf(index);
+						if (arrIndex > -1) {
+							delIndexs.splice(arrIndex, 1);
+						}
+					}
+				});
+				
+				console.log("批量删除:"+delIndexs);
+				for(var i=delIndexs.length-1; i>-1; i--){
+					$scope.data.splice(delIndexs[i],1);
+				}
+				$scope.clearItemCount = 0;
+				$("#toggle-all").prop("checked",false);
+				$("#clear-completed").hide();
+				
+				if($scope.data.length==0){
+					$("#main").hide();
+					$("footer").hide();
+				}
+				
+			}
+			
+			
+		});
+	</script>
+</body>
+</html>
