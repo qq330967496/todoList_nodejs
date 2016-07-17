@@ -16,7 +16,12 @@ app.set('view engine', 'html');
 app.use('/public', express.static(path.join(__dirname, '/public')));
 
 //配置session
-app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }}))
+app.use(session({ 
+	secret: 'test', 
+	cookie: { maxAge: 30 * 60 * 10000 },
+	resave: true, //每次请求重置时间
+	saveUninitialized: false, //不保存未初始化的session cookie
+}));
 
 //登录拦截器
 app.use(function (req, res, next) {

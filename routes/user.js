@@ -1,13 +1,14 @@
 var express = require('express');
 var url = require('url');
 
-//用户
-var adminUser = {"id":"1111111111","userName":"admin","password":"admin"};
-var guestUser = {"id":"2222222222","userName":"guest","password":"guest"};
 
 //检查登录
 function checkLogin(userName,password){
-	var loginUser = {};
+	//用户
+	var adminUser = {"id":"1111111111","userName":"admin","password":"admin"};
+	var guestUser = {"id":"2222222222","userName":"guest","password":"guest"};
+	
+	var loginUser = undefined;
 	if(userName==adminUser.userName && password == adminUser.password){
 		loginUser = adminUser;
 		console.log("admin登录成功！");
@@ -17,7 +18,9 @@ function checkLogin(userName,password){
 		loginUser = guestUser;
 		console.log("guest登录成功！");
 	}
-	delete loginUser["password"];
+	if(loginUser){
+		delete loginUser["password"];
+	}
 	return loginUser;
 }
 
@@ -59,6 +62,9 @@ module.exports = function (app) {
     		req.session.user = loginUser;
     		//跳转
     		if(loginUser){
+    			if(!getParams.redirect){
+    				getParams.redirect = "/index";//默认跳转
+    			}
     			res.redirect(getParams.redirect);
     		}else{
     			res.redirect('/login');
@@ -72,6 +78,14 @@ module.exports = function (app) {
 		console.log("获取登录用户信息");
 		var getLoginUserInfo = req.session.user;
 		res.send(getLoginUserInfo);
+    });
+	
+	//登出
+	app.get('/logout', function(req, res){
+		console.log("登出");
+		req.session.user = null;
+		
+		res.redirect('login');
     });
 }
 

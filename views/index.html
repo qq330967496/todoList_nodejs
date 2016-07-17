@@ -12,6 +12,10 @@
 </head>
 <body>
 	<div id="todoapp" ng-app="todoapp" ng-controller="formCtrl">
+		<div>
+		Username : {{userInfo.userName}}
+		<a href="/logout">logout</a>
+		</div>
 		<header>
 			<h1>Todos</h1>
 			<form id="form" method="post">
