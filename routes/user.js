@@ -65,7 +65,18 @@ module.exports = function (app) {
     		}
     		
         });
-		
-		
+    });
+	
+	//获取登录用户信息
+	app.get('/getLoginUserInfo', function(req, res){
+		console.log("获取登录用户信息");
+		var getLoginUserInfo = req.session.user;
+		res.send(getLoginUserInfo);
     });
 }
+
+
+
+
+
+

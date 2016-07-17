@@ -62,6 +62,10 @@
 					$("footer").show();
 				}
 			});
+			//获取用户信息
+			$http.get("/getLoginUserInfo").success(function(response) {
+				$scope.userInfo = response;
+			});
 			
 			//阻止事件冒泡 
 			$scope.stopPropagation = function(e){
@@ -79,7 +83,8 @@
 					console.log("添加");
 					var newTodo = {
 						id : new Date().getTime()+"",
-						val : $("#new-todo").val()
+						val : $("#new-todo").val(),
+						userid : $scope.userInfo.id
 					};
 					$scope.data.push(newTodo);
 

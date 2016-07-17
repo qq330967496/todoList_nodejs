@@ -11,8 +11,9 @@ module.exports = function (app) {
 	//获取数据
 	app.get('/getData', function(req, res){
     	console.log("获取数据");
-    	//读取所有数据
-    	todoListDao.queryAllData(callback);
+    	//读取数据
+    	var userid = req.session.user.id;
+    	todoListDao.queryDataByUserId(userid,callback);
     	function callback(data){
     		var objects = data
     		console.log(objects);
@@ -34,8 +35,8 @@ module.exports = function (app) {
             var postData = Buffer.concat(bufferArr).toString();
             var json = JSON.parse(postData);
             console.log(json);
-            //var params = require("querystring").parse(postData);
-            todoListDao.saveAllData(json);
+            //var userid = req.session.user.id;
+            todoListDao.saveData(json);
             res.end();
         });
 	});
