@@ -1,22 +1,19 @@
 var pg = require('pg');
-
-var config = {
-	host : 'localhost',
-	port : '5432',
-	user : 'postgres',
-	password : '910125',
-	database : 'myTest',
-};
+var conf_db = require('../conf/db');
 
 // 连接池
-var pool = new pg.Pool(config);
+var pool = new pg.Pool(conf_db.postgres);
 
 // 查询所有
 function queryAllData(callback) {
 	console.log("查询所有数据");
-
+	
 	pool.query('select * from tbl_todolist order by id', function(err, result) {
-		if (err) console.log(err);
+		if (err){
+			console.log(err);
+			return;
+		}
+		
 		var todoListData = { "data" :  result.rows}; 
 		callback(todoListData);
 	});
@@ -28,7 +25,7 @@ function queryDataByUserId(userid,callback) {
 	console.log(sqlStr)
 	
 	pool.query(sqlStr, function(err, result) {
-		if (err) console.log(err);
+		if (err){console.log(err); return ;}
 		var todoListData = { "data" :  result.rows}; 
 		callback(todoListData);
 	});

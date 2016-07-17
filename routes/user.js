@@ -1,5 +1,6 @@
 var express = require('express');
 var url = require('url');
+var userDao  = require('../dao/userDao');
 
 
 function getUsers(){
@@ -10,20 +11,27 @@ function getUsers(){
 }
 
 //检查登录
-function checkLogin(userName,password){
-	var users = getUsers();
-	var loginUser = undefined;
-	for(var i=0;i<users.length; i++){
-		if(userName==users[i].userName && password == users[i].password){
-			loginUser = users[i];
-			console.log(users[i].userName+"登录成功！");
-			break;
+function checkLogin(username,password,callback){
+	userDao.queryAllData(daoCallback);
+	function daoCallback(json){
+		var users = json.data;
+		var loginUser = undefined;
+		for(var i=0;i<users.length; i++){
+			console.log(username);
+			console.log(users[i]);
+			if(username==users[i].username && password == users[i].password){
+				loginUser = users[i];
+				console.log(users[i].username+"登录成功！");
+				break;
+			}
 		}
+		if(loginUser){
+			delete loginUser["password"];
+		}
+		
+		callback(loginUser);
 	}
-	if(loginUser){
-		delete loginUser["password"];
-	}
-	return loginUser;
+	
 }
 
 //获取get参数
@@ -75,18 +83,19 @@ module.exports = function (app) {
             var getParams = getGetParams(req);
     		
     		//认证
-    		var loginUser = checkLogin(postParams.userName, postParams.password);
-    		req.session.user = loginUser;
-    		//跳转
-    		if(loginUser){
-    			if(!getParams.redirect){
-    				getParams.redirect = "/index";//默认跳转
-    			}
-    			res.redirect(getParams.redirect);
-    		}else{
-    			res.redirect('/login');
-    		}
-    		
+            checkLogin(postParams.username, postParams.password,callback);
+            function callback(loginUser){
+            	req.session.user = loginUser;
+        		//跳转
+        		if(loginUser){
+        			if(!getParams.redirect){
+        				getParams.redirect = "/index";//默认跳转
+        			}
+        			res.redirect(getParams.redirect);
+        		}else{
+        			res.redirect('/login');
+        		}
+            }
         });
     });
 	
@@ -117,13 +126,15 @@ module.exports = function (app) {
             var postData = Buffer.concat(bufferArr).toString();
             var postParams = require("querystring").parse(postData);
             
-            var loginUser = checkLogin(postParams.userName, postParams.password);
+            checkLogin(postParams.username, postParams.password,callback);
     		
-    		if(loginUser){
-    			res.send(true);
-    		}else{
-    			res.send(false);
-    		}
+            function callback(loginUser){
+            	if(loginUser){
+        			res.send(true);
+        		}else{
+        			res.send(false);
+        		}
+            }
         });
 		
 		
