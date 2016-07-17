@@ -1,5 +1,4 @@
 var pg = require('pg');
-var constring = "tcp://postgres:910125@localhost:5432/myTest";
 
 var config = {
 	host : 'localhost',

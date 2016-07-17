@@ -1,6 +1,26 @@
 var express = require('express');
 var url = require('url');
 
+//用户
+var adminUser = {"id":"1111111111","userName":"admin","password":"admin"};
+var guestUser = {"id":"2222222222","userName":"guest","password":"guest"};
+
+//检查登录
+function checkLogin(userName,password){
+	var loginUser = {};
+	if(userName==adminUser.userName && password == adminUser.password){
+		loginUser = adminUser;
+		console.log("admin登录成功！");
+	}
+	
+	if(userName==guestUser.userName && password == guestUser.password){
+		loginUser = guestUser;
+		console.log("guest登录成功！");
+	}
+	delete loginUser["password"];
+	return loginUser;
+}
+
 module.exports = function (app) {
 	
 	//登录页面
@@ -26,8 +46,6 @@ module.exports = function (app) {
     		var getParamStr = url.parse(req.url).query;
     		getParamStr = unescape(getParamStr);
     		var getParamArr = getParamStr.split("&");
-    		
-    		
     		var getParams = {};
     		for(var i=0; i<getParamArr.length;i++){
     			var paramName = getParamArr[i].split("=")[0];
@@ -35,18 +53,12 @@ module.exports = function (app) {
     			
     			getParams[paramName] = value;
     		}
-    		console.log(getParams);
     		
-    		var isLogin = false;
     		//认证
-    		if(postParams.userName=="admin" && postParams.password == "admin"){
-    			isLogin = true;
-    			req.session.user = {"id":"1111111111","userName":"admin"};
-    		}
-    		
-    		
+    		var loginUser = checkLogin(postParams.userName, postParams.password);
+    		req.session.user = loginUser;
     		//跳转
-    		if(isLogin){
+    		if(loginUser){
     			res.redirect(getParams.redirect);
     		}else{
     			res.redirect('/login');

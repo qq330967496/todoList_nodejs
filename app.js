@@ -20,7 +20,6 @@ app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }}))
 
 //登录拦截器
 app.use(function (req, res, next) {
-	console.log("登录拦截器");
     var url = req.originalUrl;
     //白名单
     var whiteList = ["/public","/login"];
@@ -37,6 +36,7 @@ app.use(function (req, res, next) {
     }
     
     if(isRedirect){
+    	console.log("登录拦截器-未登录");
     	return res.redirect('/login?redirect='+url);
     }
     
