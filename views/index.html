@@ -72,9 +72,13 @@
 			$scope.add = function(e) {
 				var keycode = window.event ? e.keyCode : e.which;
 				if (keycode == 13) {
+					if($("#new-todo").val()==""){
+						return false;
+					}
+					
 					console.log("添加");
 					var newTodo = {
-						id : "1",
+						id : Math.round(Math.random()*10000)+"",
 						val : $("#new-todo").val()
 					};
 					$scope.data.push(newTodo);
@@ -84,6 +88,7 @@
 					$("footer").show();
 					
 					$scope.leftItemCount++;
+					syncData();
 				}
 			}
 
@@ -103,6 +108,7 @@
 					$("footer").hide();
 					$("#toggle-all").prop("checked",false);
 				}
+				syncData();
 			}
 			
 			//编辑
@@ -126,6 +132,8 @@
 					
 					$this = $(e.currentTarget);
 					$scope.data[index].val=$this.val();
+					
+					syncData();
 				}
 				
 			}
@@ -202,10 +210,27 @@
 					$("#main").hide();
 					$("footer").hide();
 				}
-				
+				syncData();
 			}
-			
-			
+			//同步数据
+			function syncData(){
+				/* $http.post("/saveData",{"data":$scope.data}).success(function(){
+					console.log("同步成功");
+	            }).error(function(data,header,config,status){
+					alert("同步失败");
+				}); */
+				$http({
+					url:'/saveData',
+					method:'POST',
+					data:{"data":$scope.data}
+				}).success(function(data,header,config,status){
+					//响应成功
+					console.log("同步成功");
+				}).error(function(data,header,config,status){
+					//处理响应失败
+					alert("同步失败");
+				});
+			}
 		});
 	</script>
 </body>
