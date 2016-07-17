@@ -73,7 +73,9 @@ function removeAllData(){
 //根据用户id删除数据
 function removeDataByUserId(userid,callback){
 	console.log("根据用户id删除数据");
-	pool.query('delete from tbl_todolist where userid = \''+userid+'\'', function(err) {
+	var sqlStr = 'delete from tbl_todolist where userid = \''+userid+'\'';
+	console.log(sqlStr);
+	pool.query(sqlStr, function(err) {
 		if (err){console.log(err); return ;}
 		callback();
 	});

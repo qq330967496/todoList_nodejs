@@ -2,26 +2,42 @@ var express = require('express');
 var url = require('url');
 
 
+function getUsers(){
+	//用户
+	var users = [{"id":"1111111111","userName":"admin","password":"admin"},
+	             {"id":"2222222222","userName":"guest","password":"guest"}];
+	return users;
+}
+
 //检查登录
 function checkLogin(userName,password){
-	//用户
-	var adminUser = {"id":"1111111111","userName":"admin","password":"admin"};
-	var guestUser = {"id":"2222222222","userName":"guest","password":"guest"};
-	
+	var users = getUsers();
 	var loginUser = undefined;
-	if(userName==adminUser.userName && password == adminUser.password){
-		loginUser = adminUser;
-		console.log("admin登录成功！");
-	}
-	
-	if(userName==guestUser.userName && password == guestUser.password){
-		loginUser = guestUser;
-		console.log("guest登录成功！");
+	for(var i=0;i<users.length; i++){
+		if(userName==users[i].userName && password == users[i].password){
+			loginUser = users[i];
+			console.log(users[i].userName+"登录成功！");
+			break;
+		}
 	}
 	if(loginUser){
 		delete loginUser["password"];
 	}
 	return loginUser;
+}
+
+//获取get参数
+function getGetParams(req){
+	var getParamStr = url.parse(req.url).query;
+	getParamStr = unescape(getParamStr);
+	var getParamArr = getParamStr.split("&");
+	var getParams = {};
+	for(var i=0; i<getParamArr.length;i++){
+		var paramName = getParamArr[i].split("=")[0];
+		var value = getParamArr[i].split("=")[1];
+		getParams[paramName] = value;
+	}
+	return getParams;
 }
 
 module.exports = function (app) {
@@ -46,7 +62,7 @@ module.exports = function (app) {
             var postParams = require("querystring").parse(postData);
             
             //获取get参数
-    		var getParamStr = url.parse(req.url).query;
+    		/*var getParamStr = url.parse(req.url).query;
     		getParamStr = unescape(getParamStr);
     		var getParamArr = getParamStr.split("&");
     		var getParams = {};
@@ -55,7 +71,8 @@ module.exports = function (app) {
     			var value = getParamArr[i].split("=")[1];
     			
     			getParams[paramName] = value;
-    		}
+    		}*/
+            var getParams = getGetParams(req);
     		
     		//认证
     		var loginUser = checkLogin(postParams.userName, postParams.password);
@@ -87,6 +104,30 @@ module.exports = function (app) {
 		
 		res.redirect('login');
     });
+	
+	//检测登录
+	app.post('/login/checkLogin',function(req, res){
+		console.log("检测登录");
+		var bufferArr=[];
+        req.on("data",function(data){
+            bufferArr.push(data);
+        });
+        req.on("end",function(){
+        	//获取post参数
+            var postData = Buffer.concat(bufferArr).toString();
+            var postParams = require("querystring").parse(postData);
+            
+            var loginUser = checkLogin(postParams.userName, postParams.password);
+    		
+    		if(loginUser){
+    			res.send(true);
+    		}else{
+    			res.send(false);
+    		}
+        });
+		
+		
+	});
 }
 
 

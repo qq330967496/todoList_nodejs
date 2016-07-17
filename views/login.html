@@ -4,27 +4,80 @@
 <meta charset="UTF-8">
 <title>todoList - 登录</title>
 <script type="text/javascript" src="/public/js/jquery-1.10.2.js"></script>
-<script type="text/javascript" src="/public/js/jquery.form.js"></script>
-<script type="text/javascript" src="/public/js/angular.min.js"></script>
+<script type="text/javascript" src="/public/js/jquery.validate.min.js"></script>
 
 <link rel="stylesheet" href="/public/css/style.css" />
+<style>
+	#todoapp input[type='password']{
+		margin-top: 30px;
+	}
+	button{
+		font-size: 16pt;
+	}
+	#main{
+		display: block;
+		text-align: center;
+		margin-top: 30px;
+	}
+	.error{
+		color:red;
+	}
+</style>
 
+<script>
+$(function() {
+    $("#form").validate({
+    	rules: {
+    		userName: {
+    	        required: true
+    		},
+    		password:{
+    			required: true
+    		}
+    	},
+    	submitHandler: function(form) {
+   	    	$.ajax({
+   	    		url:"/login/checkLogin",
+   	    		type:"POST",
+   	    		data:$("#form").serialize(),
+   	    		async:false,
+   	    		success:function(data){
+   	    			console.log(data);
+   	    			if(data){
+   	    				form.submit();
+   	    			}else{
+   	    				alert("username or password is wrong");
+   	    			}
+   	    		},
+   	    		error:function(e){
+   	    			alert("check fail")
+   	    		}
+   	    	});
+   	    }
+    });
+});
+/*自定义默认文字*/
+$.extend($.validator.messages, {
+  	required: "required"
+});
+</script>
 </head>
 <body>
 	<div id="todoapp">
-		<header>
-			<h1>login</h1>
-			<form id="form" method="post">
-				<input id="userName" name="userName" type="text"
-					placeholder="username" />
-				<input id="password" name="password" type="password"
-					placeholder="password" />
-				<button type="submit">login</button>
-			</form>
-		</header>
-		<div id="main">
-			
-		</div>
+		<form id="form" name="form" method="post">
+			<header>
+				<h1>LOGIN</h1>
+					<input id="userName" name="userName" type="text"
+						placeholder="username"/>
+						
+					<input id="password" name="password" type="password" 
+						placeholder="password" />
+						
+			</header>
+			<div id="main">
+				<button type="submit">Login</button>
+			</div>
+		</form>
 	</div>
 	<div id="instructions">
 	    Double-click to edit a todo.
@@ -33,5 +86,17 @@
 	    Created by Sever Ho
 	    <br>Refer to : <a href="http://backbonejs.org/examples/todos/index.html" target="_blank">backbone - TodoMVC</a>.
 	</div>
+	
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
