@@ -1,6 +1,8 @@
 var express = require('express');
 var fs = require("fs");
 var url = require('url');
+//引入todoListDao
+var todoListDao = require('../dao/todoListDao');
 
 
 var dataFile = "todoList.json";
@@ -10,9 +12,13 @@ module.exports = function (app) {
 	app.get('/getData', function(req, res){
     	console.log("获取数据");
     	//读取所有数据
-    	var objects = queryAllData();
-    	console.log(objects);
-    	res.send(objects);
+    	todoListDao.queryAllData(callback);
+    	function callback(data){
+    		var objects = data
+    		console.log(objects);
+        	res.send(objects);
+    	}
+    	
     });
 	
 	//保存数据
@@ -26,15 +32,17 @@ module.exports = function (app) {
         req.on("end",function(){
         	//获取参数
             var postData = Buffer.concat(bufferArr).toString();
-            console.log(postData);
+            var json = JSON.parse(postData);
+            console.log(json);
             //var params = require("querystring").parse(postData);
-            saveAllData(postData);
+            todoListDao.saveAllData(json);
             res.end();
         });
 	});
 }
 
-//查询所有数据
+//文件存储方式
+/*//查询所有数据
 function queryAllData(){
 	var jsonStr = fs.readFileSync(dataFile,"utf-8");
 	if(jsonStr==""){
@@ -48,7 +56,7 @@ function queryAllData(){
 function saveAllData(data){
 	fs.writeFile(dataFile,data);
 }
-
+*/
 
 
 

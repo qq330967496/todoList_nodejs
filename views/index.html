@@ -78,7 +78,7 @@
 					
 					console.log("添加");
 					var newTodo = {
-						id : Math.round(Math.random()*10000)+"",
+						id : new Date().getTime()+"",
 						val : $("#new-todo").val()
 					};
 					$scope.data.push(newTodo);
