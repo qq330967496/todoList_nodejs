@@ -13,13 +13,11 @@ module.exports = function (app) {
     	console.log("获取数据");
     	//读取数据
     	var userid = req.session.user.id;
-    	todoListDao.queryDataByUserId(userid,callback);
-    	function callback(data){
+    	todoListDao.queryDataByUserId(userid,function (data){
     		var objects = data
     		console.log(objects);
         	res.send(objects);
-    	}
-    	
+    	});
     });
 	
 	//保存数据

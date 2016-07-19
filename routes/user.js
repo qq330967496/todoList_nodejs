@@ -83,8 +83,7 @@ module.exports = function (app) {
             var getParams = getGetParams(req);
     		
     		//认证
-            checkLogin(postParams.username, postParams.password,callback);
-            function callback(loginUser){
+            checkLogin(postParams.username, postParams.password,function (loginUser){
             	req.session.user = loginUser;
         		//跳转
         		if(loginUser){
@@ -95,7 +94,7 @@ module.exports = function (app) {
         		}else{
         			res.redirect('/login');
         		}
-            }
+            });
         });
     });
 	
@@ -126,15 +125,13 @@ module.exports = function (app) {
             var postData = Buffer.concat(bufferArr).toString();
             var postParams = require("querystring").parse(postData);
             
-            checkLogin(postParams.username, postParams.password,callback);
-    		
-            function callback(loginUser){
+            checkLogin(postParams.username, postParams.password,function (loginUser){
             	if(loginUser){
         			res.send(true);
         		}else{
         			res.send(false);
         		}
-            }
+            });
         });
 		
 		
