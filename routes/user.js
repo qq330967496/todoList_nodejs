@@ -1,4 +1,3 @@
-var express = require('express');
 var url = require('url');
 var userDao  = require('../dao/userDao');
 
@@ -12,8 +11,7 @@ function getUsers(){
 
 //检查登录
 function checkLogin(username,password,callback){
-	userDao.queryAllData(daoCallback);
-	function daoCallback(json){
+	userDao.queryAllData(function (json){
 		var users = json.data;
 		var loginUser = undefined;
 		for(var i=0;i<users.length; i++){
@@ -30,7 +28,8 @@ function checkLogin(username,password,callback){
 		}
 		
 		callback(loginUser);
-	}
+	});
+	
 	
 }
 

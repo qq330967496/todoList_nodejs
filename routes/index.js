@@ -1,4 +1,3 @@
-var express = require('express');
 
 module.exports = function (app) {
 	
@@ -11,6 +10,4 @@ module.exports = function (app) {
     	console.log("主页");
         res.render('index');
     });
-    
-    
 }
