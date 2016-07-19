@@ -3,7 +3,7 @@ var url = require('url');
 //引入todoListDao
 var todoListDao = require('../dao/todoListDao');
 
-
+//类似私有化参数，引用该模块无法调用此参数
 var dataFile = "todoList.json";
 
 module.exports = function (app) {

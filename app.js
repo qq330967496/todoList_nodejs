@@ -7,7 +7,6 @@ var path = require('path');
 var ejs = require('ejs');
 var app = express();
 
-
 //ejs模板支持html
 app.engine('.html', ejs.__express);
 app.set('view engine', 'html');
@@ -52,8 +51,6 @@ app.use(function (req, res, next) {
 user(app);
 index(app);
 todoList(app);
-
-
 
 var server = app.listen(8080, function() {
 
